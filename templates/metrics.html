@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Metrics</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0; padding: 0;
+    }
+    .container {
+      max-width: 600px; margin: 2rem auto; background: #fff;
+      padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h1 { margin-bottom: 1.5rem; }
+    p { font-size: 1.1rem; margin: 1rem 0; }
+    a {
+      display: inline-block; margin-top: 1rem;
+      text-decoration: none; color: #4CAF50; font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Your Overall Record & Metrics</h1>
+    <p><strong>Total Predictions:</strong> {{ metrics.total_predictions }}</p>
+    <p><strong>Wins:</strong> {{ metrics.total_wins }}</p>
+    <p><strong>Losses:</strong> {{ metrics.total_losses }}</p>
+    <p><strong>Win Rate:</strong> {{ metrics.win_rate }}%</p>
+
+    <a href="/">Back to Home</a>
+  </div>
+</body>
+</html>

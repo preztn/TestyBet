@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NBA Player Prediction</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0;
+    }
+    header {
+      background: #4CAF50; color: #fff; text-align: center; padding: 1rem;
+    }
+    .container {
+      max-width: 700px; margin: 2rem auto; background: #fff; padding: 2rem;
+      border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    label { display: block; margin: 0.5rem 0 0.2rem; color: #555; }
+    input, select, button {
+      width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #ccc;
+      border-radius: 4px; font-size: 1rem;
+    }
+    button {
+      background: #4CAF50; color: #fff; border: none; cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover { background: #45a049; }
+    a { color: #4CAF50; text-decoration: none; }
+    h1 { text-align: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NBA Player Prediction</h1>
+  </header>
+  <div class="container">
+    {% if username %}
+      <h1>Welcome, {{ username }}!</h1>
+      <p><a href="/logout">Logout</a> | <a href="/history">View My Past Predictions</a></p>
+
+      {% if defaults %}
+        <p>Your default weight for D_vsPos is: {{ defaults["D_vsPos"] }}</p>
+      {% endif %}
+
+      <!-- Prediction Form -->
+      <form method="POST" action="/predict">
+        <label for="player_name" class="form-label">Player Name</label>
+        <input type="text" id="player_name" name="player_name" required>
+        
+        <label>Team Defensive Rank (1-30):</label>
+        <input type="number" name="team_defensive_rank" min="1" max="30" required>
+
+        <label>Player Position:</label>
+        <select name="player_position" required>
+          <option value="PG">PG</option>
+          <option value="SG">SG</option>
+          <option value="SF">SF</option>
+          <option value="PF">PF</option>
+          <option value="C">C</option>
+        </select>
+
+        <label>Betting Line:</label>
+        <input type="number" name="user_line" step="0.1" required>
+        
+
+        <label>Player Average Stat (e.g., points):</label>
+        <input type="number" name="player_average" step="0.1" required>
+
+        <h2>Player Stats (Hit Rates)</h2>
+        <label for="P_24_25">Hit Rate (24/25):</label>
+        <input type="number" name="P_24_25" step="0.01" min="0" max="1" required>
+
+        <label>Hit Rate (H2H):</label>
+        <input type="number" name="P_H2H" step="0.01" min="0" max="1" required>
+
+        <label>Hit Rate (Last 5 Games):</label>
+        <input type="number" name="P_L5" step="0.01" min="0" max="1" required>
+
+        <label>Hit Rate (Last 10 Games):</label>
+        <input type="number" name="P_L10" step="0.01" min="0" max="1" required>
+
+        <label>Hit Rate (Last 20 Games):</label>
+        <input type="number" name="P_L20" step="0.01" min="0" max="1" required>
+
+        <label>Hit Rate (23/24):</label>
+        <input type="number" name="P_23_24" step="0.01" min="0" max="1" required>
+
+        <h2>Streaks</h2>
+        <label>Positive Streaks:</label>
+        <input type="number" name="streak_Pos" min="0" max="10" step="1" required>
+
+        <label>Negative Streaks:</label>
+        <input type="number" name="streak_Neg" min="0" max="10" step="1" required>
+
+        <h2>Weights</h2>
+        <label>Weight (D_vsPos):</label>
+        <input type="number" name="D_vsPos" step="0.01" min="0" max="1" value="0.25" required>
+
+        <label>Weight (P_24_25):</label>
+        <input type="number" name="P_24_25" step="0.01" min="0" max="1" value="0.20" required>
+
+        <label>Weight (P_H2H):</label>
+        <input type="number" name="P_H2H" step="0.01" min="0" max="1" value="0.15" required>
+
+        <label>Weight (P_L5):</label>
+        <input type="number" name="P_L5" step="0.01" min="0" max="1" value="0.10" required>
+
+        <label>Weight (P_L10):</label>
+        <input type="number" name="P_L10" step="0.01" min="0" max="1" value="0.10" required>
+
+        <label>Weight (P_L20):</label>
+        <input type="number" name="P_L20" step="0.01" min="0" max="1" value="0.05" required>
+
+        <label>Weight (P_23_24):</label>
+        <input type="number" name="P_23_24" step="0.01" min="0" max="1" value="0.05" required>
+
+        <label>Weight (Streak_Pos):</label>
+        <input type="number" name="Streak_Pos" step="0.01" min="0" max="1" value="0.10" required>
+
+        <label>Weight (Streak_Neg):</label>
+        <input type="number" name="Streak_Neg" step="0.01" min="0" max="1" value="0.10" required>
+
+        <button type="submit">Submit Prediction</button>
+
+        <a href="/trends">View Trend Charts</a>
+        <br>
+        <a href="/players">View Player Data</a>
+
+      </form>
+    {% else %}
+      <h1>Welcome to the NBA Prediction App!</h1>
+      <p><a href="/login">Login</a> or <a href="/register">Register</a></p>
+    {% endif %}
+  </div>
+</body>
+</html>

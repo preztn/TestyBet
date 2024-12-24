@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Delete Confirmation</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .container {
+      max-width: 400px; margin: 3rem auto; background: #fff; padding: 2rem;
+      border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    button {
+      background: red; color: #fff; border: none; cursor: pointer;
+      padding: 0.8rem 1.2rem; border-radius: 4px; margin: 1rem;
+    }
+    a { text-decoration: none; color: #4CAF50; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Delete Prediction #{{ prediction.id }}?</h1>
+    <p>Are you sure you want to delete this prediction? This action cannot be undone.</p>
+    <!-- Show some details if desired -->
+    <p><strong>Team Rank:</strong> {{ prediction.team_defensive_rank }}</p>
+    <p><strong>Position:</strong> {{ prediction.player_position }}</p>
+    <p><strong>Probability:</strong> {{ prediction.probability_exceed_line }}%</p>
+    <p><strong>Projected Stat:</strong> {{ prediction.projected_stat }}</p>
+
+    <form method="POST">
+      <button type="submit">Confirm Delete</button>
+      <a href="{{ url_for('history') }}">Cancel</a>
+    </form>
+  </div>
+</body>
+</html>

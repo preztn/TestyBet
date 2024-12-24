@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NBA Prediction Results</title>
+  <!-- Optionally include Font Awesome for icons -->
+  <script
+    src="https://kit.fontawesome.com/64d58efce2.js"
+    crossorigin="anonymous"
+  ></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      color: #333;
+    }
+    header {
+      background: #4CAF50;
+      color: #fff;
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 2rem auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+    .prediction-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f1f1f1;
+      margin: 0.5rem 0;
+      padding: 0.7rem;
+      border-radius: 4px;
+    }
+    .prediction-label {
+      font-weight: bold;
+    }
+    .exceed-status {
+      display: inline-flex;
+      align-items: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    .exceed-status span {
+      margin-left: 0.4rem;
+    }
+    .yes {
+      color: green;
+    }
+    .no {
+      color: red;
+    }
+    .chart-container {
+      margin-top: 2rem;
+      text-align: center;
+    }
+    a {
+      display: inline-block;
+      margin-top: 1.5rem;
+      text-decoration: none;
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    footer {
+      text-align: center;
+      background: #333;
+      color: #fff;
+      padding: 1rem;
+      margin-top: 2rem;
+    }
+  </style>
+
+  <!-- Load Chart.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>NBA Player Prediction Results</h1>
+  </header>
+
+  <div class="container">
+    <!-- Example: Displaying extra fields like "Likelihood Score" -->
+    <!-- Make sure these keys actually exist in your "prediction" dictionary in app.py -->
+
+    <div class="prediction-row">
+      <span class="prediction-label">Likelihood Score</span>
+      <span>{{ prediction["Likelihood Score"] }}</span>
+    </div>
+
+    <div class="prediction-row">
+      <span class="prediction-label">Probability to Exceed Line (%)</span>
+      <span>{{ prediction["Probability to Exceed Line (%)"] }}%</span>
+    </div>
+
+    <div class="prediction-row">
+      <span class="prediction-label">Will Exceed Line</span>
+      {% if prediction["Will Exceed Line"] == "Yes" %}
+        <span class="exceed-status yes">
+          <i class="fas fa-check-circle"></i>
+          <span>Yes</span>
+        </span>
+      {% else %}
+        <span class="exceed-status no">
+          <i class="fas fa-times-circle"></i>
+          <span>No</span>
+        </span>
+      {% endif %}
+    </div>
+
+    <div class="prediction-row">
+      <span class="prediction-label">Projected Stat (e.g., points)</span>
+      <span>{{ prediction["Projected Stat (e.g., points)"] }}</span>
+    </div>
+
+    <!-- Chart.js Container -->
+    <div class="chart-container">
+      <h2>Probability Chart</h2>
+      <canvas id="probChart" width="400" height="200"></canvas>
+    </div>
+
+    <a href="/">Go Back to Input Form</a>
+  </div>
+
+  <footer>
+    <p>&copy; 2024 NBA Prediction App</p>
+  </footer>
+
+  <script>
+    // Convert the probability from Jinja2 to a JS variable
+    const probData = {{ prediction["Probability to Exceed Line (%)"]|safe }};
+
+    // Initialize Chart.js
+    const ctx = document.getElementById('probChart').getContext('2d');
+    const probChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Probability to Exceed Line'],
+        datasets: [
+          {
+            label: 'Probability (%)',
+            data: [probData],
+            backgroundColor: probData > 50
+              ? 'rgba(75, 192, 192, 0.2)'  // Greenish if > 50%
+              : 'rgba(255, 99, 132, 0.2)', // Reddish if <= 50%
+            borderColor: probData > 50
+              ? 'rgba(75, 192, 192, 1)'
+              : 'rgba(255, 99, 132, 1)',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

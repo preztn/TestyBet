@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Trend Charts</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Performance Trend</h1>
+  <p><a href="/">Back to Home</a></p>
+  <canvas id="trendChart" width="800" height="400"></canvas>
+
+  <script>
+    // Jinja2 passes data_points (list of dicts)
+    const dataFromServer = {{ data_points|tojson }};
+    // Example shape: [ { "timestamp":"2024-01-01 20:00:00", "predicted":20.5, "actual":25 }, ...]
+
+    // Separate arrays for predicted & actual, plus an x-axis of timestamps
+    const labels = dataFromServer.map(dp => dp.timestamp);  // e.g. ["2024-01-01 ...", "2024-01-02 ...", ...]
+    const predictedData = dataFromServer.map(dp => dp.predicted);
+    const actualData = dataFromServer.map(dp => dp.actual);
+
+    // Initialize Chart.js
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,  // x-axis labels
+        datasets: [
+          {
+            label: "Predicted",
+            data: predictedData,
+            borderColor: 'blue',
+            backgroundColor: 'rgba(0, 0, 255, 0.1)',
+            fill: false,
+            tension: 0.1
+          },
+          {
+            label: "Actual",
+            data: actualData,
+            borderColor: 'red',
+            backgroundColor: 'rgba(255, 0, 0, 0.1)',
+            fill: false,
+            tension: 0.1
+          }
+        ]
+      },
+      options: {
+        scales: {
+          x: {
+            type: 'category',  // Using timestamps as categories
+            title: {
+              display: true,
+              text: 'Date / Time'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Points'
+            },
+            beginAtZero: false
+          }
+        },
+        plugins: {
+          title: {
+            display: true,
+            text: 'Predicted vs. Actual Trend Over Time'
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
