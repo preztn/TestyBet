@@ -52,7 +52,7 @@ def get_player_prediction(team_defensive_rank, player_position, player_stats, st
     D_vsPos = convert_defensive_rank_to_rating(team_defensive_rank)
 
     # Adjust D_vsPos based on position
-    position_map = {'PG': 11, 'SG': 10, 'SF': 4, 'PF': 6, 'C': 10}
+    position_map = {'PG': 11, 'SG': 10, 'SF': 16 , 'PF': 6, 'C': 28}
     rank_vs_pos = position_map.get(player_position, team_defensive_rank)
     D_vsPos = convert_defensive_rank_to_rating(rank_vs_pos)
 
