@@ -621,7 +621,7 @@ def validate():
     # Prepare accuracy distribution data
     accuracy_distribution = {
         "labels": ["50%-60%", "60%-70%", "70%-80%", "80%-90%", "90%-100%"],
-        "values": [3, 5, 7, 10, 15]  # Example values, replace with real logic
+        "values": [2, 10, 0, 0, 0]  # Example values, replace with real logic
     }
 
     # Prepare outcome counts
@@ -642,7 +642,7 @@ def validate():
     ]
 
     return render_template(
-        "validation.html",
+        "validate.html",
         total=total,
         correct=correct,
         accuracy=accuracy,
