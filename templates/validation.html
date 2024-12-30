@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Validation Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        .summary {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        .chart-container {
+            margin: 2rem 0;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+        .result-table th, .result-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .result-table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .result-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .result-table tr:hover {
+            background-color: #ddd;
+        }
+        a {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 0.5rem 1rem;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            text-align: center;
+        }
+        a:hover {
+            background: #45a049;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Model Validation Results</h1>
+    </header>
+    <div class="container">
+        <h1>Validation Summary</h1>
+        <div class="summary">
+            <p>Total Predictions with Outcomes: <strong>{{ total }}</strong></p>
+            <p>Correct Predictions: <strong>{{ correct }}</strong></p>
+            <p>Accuracy: <strong>{{ accuracy }}%</strong></p>
+        </div>
+
+        <div class="chart-container">
+            <h2>Accuracy Distribution</h2>
+            <canvas id="accuracyChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h2>Prediction Outcomes</h2>
+            <canvas id="outcomeChart"></canvas>
+        </div>
+
+        <h2>Detailed Results</h2>
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Predicted</th>
+                    <th>Actual</th>
+                    <th>Outcome</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in detailed_results %}
+                <tr>
+                    <td>{{ row.player_name }}</td>
+                    <td>{{ row.projected_stat }}</td>
+                    <td>{{ row.actual_outcome }}</td>
+                    <td>{{ row.outcome }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="/">Back to Home</a>
+    </div>
+    <script>
+        // Parse the JSON data passed from Flask
+        const accuracyData = JSON.parse('{{ accuracy_distribution|safe }}');
+        const outcomeData = JSON.parse('{{ outcome_counts|safe }}');
+    
+        // Accuracy Chart
+        const accuracyCtx = document.getElementById('accuracyChart').getContext('2d');
+        new Chart(accuracyCtx, {
+            type: 'bar',
+            data: {
+                labels: accuracyData.labels,
+                datasets: [{
+                    label: 'Predictions',
+                    data: accuracyData.values,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    
+        // Outcomes Chart
+        const outcomeCtx = document.getElementById('outcomeChart').getContext('2d');
+        new Chart(outcomeCtx, {
+            type: 'pie',
+            data: {
+                labels: outcomeData.labels,
+                datasets: [{
+                    data: outcomeData.values,
+                    backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+                    borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
+                    borderWidth: 1
+                }]
+            }
+        });
+    </script>
+</body>
+</html>
