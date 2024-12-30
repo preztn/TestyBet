@@ -72,8 +72,9 @@
           <th>Position</th>
           <th>Prob (%)</th>
           <th>Will Exceed?</th>
-          <th>Projected Stat</th>
+          <th>Line</th>
           <th>Likelihood</th>
+          <th>Predicted</th>
           <th>Actual Outcome</th>
           <th>Win/Loss</th>
           <th>Actions</th>
@@ -88,8 +89,9 @@
           <td>{{ row.player_position }}</td>
           <td>{{ row.probability_exceed_line }}%</td>
           <td>{{ row.will_exceed_line }}</td>
-          <td>{{ row.projected_stat }}</td>
+          <td>{{ row.user_line }}</td>
           <td>{{ row.likelihood_score }}</td>
+          <td>{{ row.projected_stat }}</td>
           <td>
             {% if row.actual_outcome %}
               {{ row.actual_outcome }}

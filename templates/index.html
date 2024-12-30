@@ -30,16 +30,12 @@
 </head>
 <body>
   <header>
-    <h1>NBA Player Prediction</h1>
+    <h1>NBA Player Points Prediction</h1>
   </header>
   <div class="container">
     {% if username %}
       <h1>Welcome, {{ username }}!</h1>
-      <p><a href="/logout">Logout</a> | <a href="/history">View My Past Predictions</a></p>
-
-      {% if defaults %}
-        <p>Your default weight for D_vsPos is: {{ defaults["D_vsPos"] }}</p>
-      {% endif %}
+      <p><a href="/logout">Logout</a> | <a href="/history">View My Past Predictions</a> | <a href="/trends">View Trend Charts</a> | <a href="/players">View Player Data</a> | <a href="/validation">View Validation Data</a></p>
 
       <!-- Prediction Form -->
       <form method="POST" action="/predict">
@@ -57,6 +53,28 @@
           <option value="PF">PF</option>
           <option value="C">C</option>
         </select>
+
+            <!-- Custom Ratings -->
+        <h3>Custom Position Ratings</h3>
+        <label for="custom_pg">PG:</label>
+        <input type="number" name="custom_pg" min="0" max="30" step="1" required>
+        <br>
+
+        <label for="custom_sg">SG:</label>
+        <input type="number" name="custom_sg" min="0" max="30" step="1" required>
+        <br>
+
+        <label for="custom_sf">SF:</label>
+        <input type="number" name="custom_sf" min="0" max="30" step="1" required>
+        <br>
+
+        <label for="custom_pf">PF:</label>
+        <input type="number" name="custom_pf" min="0" max="30" step="1" required>
+        <br>
+
+        <label for="custom_c">C:</label>
+        <input type="number" name="custom_c" min="0" max="30" step="1" required>
+        <br>
 
         <label>Betting Line:</label>
         <input type="number" name="user_line" step="0.1" required>
@@ -121,9 +139,8 @@
 
         <button type="submit">Submit Prediction</button>
 
-        <a href="/trends">View Trend Charts</a>
+        
         <br>
-        <a href="/players">View Player Data</a>
 
       </form>
     {% else %}

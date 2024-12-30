@@ -1,13 +1,36 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import sqlite3
 import json
 from flask_bcrypt import Bcrypt
 import requests
 import os
-from dotenv import load_dotenv
 import numpy as np
+from dotenv import load_dotenv
 
 load_dotenv()
+
+############################################
+# Flask App & Configuration
+############################################
+app = Flask(__name__)
+app.secret_key = "SUPER_SECRET_KEY"
+bcrypt = Bcrypt(app)
+DATABASE = "users.db"
+
+
+############################################
+# Helper Functions for Database Operations
+############################################
+def get_db():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def get_user_by_username(username):
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+    db.close()
+    return user
 
 ############################################
 # NBA Prediction Model Code
@@ -47,14 +70,9 @@ def convert_to_probability(likelihood, scale_factor=1.0):
     likelihood = min(max(likelihood, -3), 3)
     return 1 / (1 + np.exp(-likelihood / scale_factor))
 
-def get_player_prediction(team_defensive_rank, player_position, player_stats, streaks, weights, line, player_average):
-    """Main function to get player prediction & projection."""
-    D_vsPos = convert_defensive_rank_to_rating(team_defensive_rank)
-
-    # Adjust D_vsPos based on position
-    position_map = {'PG': 11, 'SG': 10, 'SF': 16 , 'PF': 6, 'C': 28}
-    rank_vs_pos = position_map.get(player_position, team_defensive_rank)
-    D_vsPos = convert_defensive_rank_to_rating(rank_vs_pos)
+def get_player_prediction(team_defensive_rank, player_position, player_stats, streaks, weights, line, player_average, custom_position_map):
+    # Use custom position ratings if available
+    D_vsPos = convert_defensive_rank_to_rating(custom_position_map.get(player_position, team_defensive_rank))
 
     # Extract stats
     P_24_25 = player_stats['24/25']
@@ -76,7 +94,7 @@ def get_player_prediction(team_defensive_rank, player_position, player_stats, st
     # Probability
     probability = convert_to_probability(likelihood)
     probability_to_hit_line = probability * 100
-    is_over_line = "Yes" if probability_to_hit_line > 50 else "No"
+    is_over_line = "Yes" if probability_to_hit_line > 70 else "No"
 
     # Simple projected stat
     projected_stat = player_average * (1 + min(max(likelihood * 0.05, -0.1), 0.1))
@@ -106,27 +124,6 @@ def determine_win_loss(predicted_yes_no, user_line, actual_outcome):
     else:
         return "Loss"
 
-
-############################################
-# Flask App & User Auth
-############################################
-
-app = Flask(__name__)
-app.secret_key = "SUPER_SECRET_KEY"  # Replace with secure key in production
-bcrypt = Bcrypt(app)
-DATABASE = "users.db"
-
-def get_db():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def get_user_by_username(username):
-    db = get_db()
-    user = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
-    db.close()
-    return user
-
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -141,11 +138,11 @@ def register():
 
         # Optional user defaults
         default_weights = {
-            "D_vsPos": 0.25,
-            "P_24_25": 0.20,
-            "P_H2H": 0.15,
-            "P_L5": 0.10,
-            "P_L10": 0.10,
+            "D_vsPos": 0.35,
+            "P_24_25": 0.15,
+            "P_H2H": 0.10,
+            "P_L5": 0.20,
+            "P_L10": 0.15,
             "P_L20": 0.05,
             "P_23_24": 0.05,
             "Streak_Pos": 0.10,
@@ -203,18 +200,18 @@ def index():
 
 @app.route("/predict", methods=["GET", "POST"])
 def predict():
-    user_id = session.get("user_id")  # If you require a user to be logged in
+    user_id = session.get("user_id")
     if not user_id:
         return redirect(url_for("login"))
 
     if request.method == "POST":
-        # 1) Parse all form field
+        # Get form data
         player_name = request.form["player_name"]
         team_defensive_rank = int(request.form["team_defensive_rank"])
         player_position = request.form["player_position"]
         player_average = float(request.form["player_average"])
-        
-        # Example: Player stats
+
+        # Player stats
         player_stats = {
             "24/25": float(request.form["P_24_25"]),
             "H2H": float(request.form["P_H2H"]),
@@ -232,23 +229,30 @@ def predict():
 
         # Weights
         weights = {
-        'D_vsPos': float(request.form['D_vsPos']),
-        'P_24_25': float(request.form['P_24_25']),
-        'P_H2H': float(request.form['P_H2H']),
-        'P_L5': float(request.form['P_L5']),
-        'P_L10': float(request.form['P_L10']),
-        'P_L20': float(request.form['P_L20']),
-        'P_23_24': float(request.form['P_23_24']),
-        'Streak_Pos': float(request.form['Streak_Pos']),
-        'Streak_Neg': float(request.form['Streak_Neg'])
+            'D_vsPos': float(request.form['D_vsPos']),
+            'P_24_25': float(request.form['P_24_25']),
+            'P_H2H': float(request.form['P_H2H']),
+            'P_L5': float(request.form['P_L5']),
+            'P_L10': float(request.form['P_L10']),
+            'P_L20': float(request.form['P_L20']),
+            'P_23_24': float(request.form['P_23_24']),
+            'Streak_Pos': float(request.form['Streak_Pos']),
+            'Streak_Neg': float(request.form['Streak_Neg'])
+        }
+
+        # Custom position ratings
+        custom_position_map = {
+            "PG": int(request.form["custom_pg"]),
+            "SG": int(request.form["custom_sg"]),
+            "SF": int(request.form["custom_sf"]),
+            "PF": int(request.form["custom_pf"]),
+            "C": int(request.form["custom_c"]),
         }
 
         # Betting line
         user_line = float(request.form["user_line"])
 
-        # 2) Run your prediction logic (Example)
-        # Suppose you have a function: get_player_prediction(...)
-        # that returns a dict of { "Likelihood Score", "Probability to Exceed Line (%)", "Projected Stat", etc. }
+        # Call prediction function with custom_position_map
         prediction = get_player_prediction(
             team_defensive_rank,
             player_position,
@@ -256,10 +260,11 @@ def predict():
             streaks,
             weights,
             line=user_line,
-            player_average=player_average
+            player_average=player_average,
+            custom_position_map=custom_position_map
         )
 
-        # 3) (Optional) Store the predictions in your DB if desired
+        # Save prediction in the database
         db = get_db()
         db.execute("""
             INSERT INTO predictions (
@@ -294,12 +299,11 @@ def predict():
         db.commit()
         db.close()
 
-        # 4) Return a results page (render a template or redirect)
+        # Render results page
         return render_template("results.html", prediction=prediction, player_name=player_name)
 
-    else:
-        # If GET: Just show the predict form
-        return render_template("predict.html")
+    # Show form if GET request
+    return render_template("predict.html")
 
 @app.route("/history")
 def history():
@@ -562,7 +566,7 @@ def fetch_data():
     return "Data fetched! <a href='/players'>View Players</a>"
 
 ############################################
-# NEW ROUTE /players
+# Players Route
 ############################################
 
 @app.route("/players")
@@ -586,3 +590,63 @@ def show_players():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+############################################
+# Validation Route
+############################################
+
+@app.route("/validate")
+def validate():
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+
+    db = get_db()
+    rows = db.execute(
+        """
+        SELECT player_name, projected_stat, actual_outcome,
+               (actual_outcome > user_line) AS exceeded, win_loss
+        FROM predictions
+        WHERE user_id = ?
+        """,
+        (user_id,)
+    ).fetchall()
+    db.close()
+
+    # Prepare validation data
+    total = len(rows)
+    correct = sum(1 for row in rows if row["win_loss"] == "Win")
+    accuracy = round((correct / total) * 100, 2) if total > 0 else 0
+
+    # Prepare accuracy distribution data
+    accuracy_distribution = {
+        "labels": ["50%-60%", "60%-70%", "70%-80%", "80%-90%", "90%-100%"],
+        "values": [3, 5, 7, 10, 15]  # Example values, replace with real logic
+    }
+
+    # Prepare outcome counts
+    outcome_counts = {
+        "labels": ["Wins", "Losses"],
+        "values": [correct, total - correct]
+    }
+
+    # Detailed results
+    detailed_results = [
+        {
+            "player_name": row["player_name"],
+            "projected_stat": row["projected_stat"],
+            "actual_outcome": row["actual_outcome"],
+            "outcome": "Win" if row["win_loss"] == "Win" else "Loss"
+        }
+        for row in rows
+    ]
+
+    return render_template(
+        "validation.html",
+        total=total,
+        correct=correct,
+        accuracy=accuracy,
+        accuracy_distribution=json.dumps(accuracy_distribution),
+        outcome_counts=json.dumps(outcome_counts),
+        detailed_results=detailed_results
+    )
